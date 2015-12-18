@@ -1,0 +1,77 @@
+﻿<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>X si 0</title>
+    <link rel=stylesheet type="text/css" href="css/style.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.js"></script>
+</head>
+<body>
+    <div>
+        <button id="resetButton">Reset</button>
+    </div>
+
+    <div class="container">
+        <ol class="tiles">
+            <li class="tile"><button class="button" id="0"> </button></li>
+            <li class="tile"><button class="button" id="1"> </button></li>
+            <li class="tile"><button class="button" id="2"> </button></li>
+            <li class="cf tile"><button class="button" id="3"> </button></li>
+            <li class="tile"><button class="button" id="4"> </button></li>
+            <li class="tile"><button class="button" id="5"> </button></li>
+            <li class="cf tile"><button class="button" id="6"> </button></li>
+            <li class="tile"><button class="button" id="7"> </button></li>
+            <li class="tile"><button class="button" id="8"> </button></li>
+        </ol>
+    </div>
+
+
+    <script>
+       function handleMoveReply(reply) {
+            if (reply == -1 ) {
+                alert("gata");
+            } else {
+                var obj = $('.tiles li').find('#'+reply);
+                obj.text("O");
+            }
+       }
+
+       function handleReset() {
+            $('.tiles li button').text('');
+       }
+
+      $(document).ready(function(){
+        // pagina e incarcata
+        $('.tiles li').click(function(){
+            var button = $(this).find('button');
+            var id = button.attr('id');
+
+            var obj = $('.tiles li').find('#'+id);
+            obj.text("X");
+
+            var reply = $.ajax({
+                type: "POST",
+                contentType: "text/plain; charset=utf-8",
+                url: "http://localhost:8080/rest/xsizero/",
+                data: id,
+                dataType: "text"
+            });
+
+            reply.success(handleMoveReply);
+            reply.error(function() {alert("invalid");});
+        });
+
+        $('#resetButton').click(function(){
+            var reply = $.ajax({
+                type: "POST",
+                contentType: "text/plain; charset=utf-8",
+                url: "http://localhost:8080/rest/xsizero/reset/",
+                data: "",
+                dataType: "text"
+            });
+
+          reply.done(handleReset);
+        });
+      });
+    </script>
+</body>
+</html>
