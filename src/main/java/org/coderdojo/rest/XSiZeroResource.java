@@ -4,70 +4,49 @@ import javax.inject.Singleton;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.OutputStream;
+
+import gnu.io.CommPort;
+import gnu.io.CommPortIdentifier;
+import gnu.io.SerialPort;
+
+import java.io.FileDescriptor;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+// native DLL from http://fizzed.com/oss/rxtx-for-java
 
 @Singleton
 @Path("xsizero")
 public class XSiZeroResource {
-    private final Pozitie[] tabla = new Pozitie[9];
+    private final Callback callback = new Callback();
+    private final SerialHandler serialHandler;
 
     public XSiZeroResource() {
-        for (int i = 0; i < 9; i++) {
-            tabla[i] = Pozitie.E;
-        }
+        serialHandler = new SerialHandler(callback);
+        serialHandler.initialize("COM3");
+
     }
 
     @GET
     @Produces("text/plain")
     public String getBoard() {
-        StringBuilder builder = new StringBuilder(9);
+        serialHandler.write("a");
 
-        for (int i = 0; i < 9; i++) {
-            if (tabla[i] == Pozitie.O) {
-                builder.append("O");
-            } else if (tabla[i] == Pozitie.X) {
-                builder.append("X");
-            } else {
-                builder.append(" ");
-            }
-        }
-
-        return builder.toString();
+        return callback.getData();
     }
 
-    @POST
-    @Consumes(MediaType.TEXT_PLAIN)
-    public Response getNextMove(String currentMoveStr) {
-        int currentMove = Integer.valueOf(currentMoveStr);
-        if (tabla[currentMove] == Pozitie.E) {
-            tabla[currentMove] = Pozitie.X;
+    private static class Callback implements ICallback {
+        private String data;
 
-            for (int i = 0; i < 9; i++) {
-                if (tabla[i] == Pozitie.E ) {
-                    tabla[i] = Pozitie.O;
-
-                    return Response.ok(i).build();
-                }
-            }
-
-            return Response.ok(-1).build();
+        @Override
+        public void onEvent(String incoming) {
+            data = incoming;
         }
 
-        return Response.serverError().build();
-    }
-
-    @POST
-    @Path("reset")
-    public Response reset() {
-        for (int i = 0; i < 9; i++) {
-            tabla[i] = Pozitie.E;
+        public String getData() {
+            return data;
         }
-
-        return Response.ok().build();
-    }
-
-    private enum Pozitie {
-        X,
-        O,
-        E
     }
 }
