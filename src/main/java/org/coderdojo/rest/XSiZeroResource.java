@@ -1,5 +1,8 @@
 package org.coderdojo.rest;
 
+import org.coderdojo.rest.game.GameLogic;
+import org.coderdojo.rest.game.Pozitie;
+
 import javax.inject.Singleton;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -12,7 +15,7 @@ public class XSiZeroResource {
 
     public XSiZeroResource() {
         for (int i = 0; i < 9; i++) {
-            tabla[i] = Pozitie.E;
+            tabla[i] = Pozitie.GOL;
         }
     }
 
@@ -38,18 +41,16 @@ public class XSiZeroResource {
     @Consumes(MediaType.TEXT_PLAIN)
     public Response getNextMove(String currentMoveStr) {
         int currentMove = Integer.valueOf(currentMoveStr);
-        if (tabla[currentMove] == Pozitie.E) {
+        if (tabla[currentMove] == Pozitie.GOL) {
             tabla[currentMove] = Pozitie.X;
 
-            for (int i = 0; i < 9; i++) {
-                if (tabla[i] == Pozitie.E ) {
-                    tabla[i] = Pozitie.O;
+            int nextMove = GameLogic.nextPosition(tabla);
 
-                    return Response.ok(i).build();
-                }
+            if (nextMove != -1) {
+                tabla[nextMove] = Pozitie.O;
             }
 
-            return Response.ok(-1).build();
+            return Response.ok(nextMove).build();
         }
 
         return Response.serverError().build();
@@ -59,15 +60,9 @@ public class XSiZeroResource {
     @Path("reset")
     public Response reset() {
         for (int i = 0; i < 9; i++) {
-            tabla[i] = Pozitie.E;
+            tabla[i] = Pozitie.GOL;
         }
 
         return Response.ok().build();
-    }
-
-    private enum Pozitie {
-        X,
-        O,
-        E
     }
 }
